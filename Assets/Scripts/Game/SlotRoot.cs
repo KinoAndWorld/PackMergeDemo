@@ -12,7 +12,14 @@ namespace PackageMerge
 
 		public Vector2 initEnableYRange = new Vector2(2, 4);
 		public Vector2 initEnableXRange = new Vector2(1, 3);
-		
+
+		public static SlotRoot shared;
+
+		private void Awake()
+		{
+			shared = this;
+		}
+
 		void Start()
 		{
 			for (int i = 0; i < initRow; i++)
@@ -27,15 +34,8 @@ namespace PackageMerge
 					{
 						var slot = self.GetComponent<UISlot>();
 						slot.positionForGrid = new Vector2(i, j);
-						if (isInitEnable)
-						{
-							ColorUtility.TryParseHtmlString("#E5CDB1", out var newCol);
-							self.color = newCol;
-						}
-						else
-						{
-							self.color = Color.grey;
-						}
+						slot.isInitEnable = isInitEnable;
+						slot.commonInit();
 					}).Show();
 				}
 			}
