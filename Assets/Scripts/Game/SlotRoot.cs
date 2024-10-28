@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using QFramework;
 using UnityEngine.UI;
@@ -13,15 +14,11 @@ namespace PackageMerge
 		public Vector2 initEnableYRange = new Vector2(2, 4);
 		public Vector2 initEnableXRange = new Vector2(1, 3);
 
-		public static SlotRoot shared;
-
-		private void Awake()
-		{
-			shared = this;
-		}
-
+		private List<UISlot> _currentSlots = new List<UISlot>();
+		 
 		void Start()
 		{
+			ListenEvents();
 			for (int i = 0; i < initRow; i++)
 			{
 				for (int j = 0; j < initColunm; j++)
@@ -36,9 +33,24 @@ namespace PackageMerge
 						slot.positionForGrid = new Vector2(i, j);
 						slot.isInitEnable = isInitEnable;
 						slot.commonInit();
+						_currentSlots.Add(slot);
 					}).Show();
 				}
 			}
+		}
+
+		private void ListenEvents()
+		{
+			GameCenterManager.Shared.ExtendMode.Register(value =>
+			{
+				foreach (var currentSlot in _currentSlots)
+				{
+					if (!currentSlot.isInitEnable)
+					{
+						currentSlot.slotBack.enabled = value;
+					}
+				}
+			}).UnRegisterWhenGameObjectDestroyed(gameObject);
 		}
 	}
 }

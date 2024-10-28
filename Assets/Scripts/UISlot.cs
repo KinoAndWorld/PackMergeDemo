@@ -36,6 +36,7 @@ public class UISlot : MonoBehaviour
         else
         {
             slotBack.color = Color.grey;
+            slotBack.enabled = false;
         }
     }
 
@@ -64,20 +65,8 @@ public class UISlot : MonoBehaviour
         }
     }
 
-    // private void OnTriggerEnter2D(Collider2D other)
-    // {
-    //     if (other.CompareTag("Equip"))
-    //     {
-    //         slotBack.color = Color.red;
-    //     }
-    //     
-    // }
-    //
-    // private void OnTriggerExit2D(Collider2D other)
-    // {
-    //     if (other.CompareTag("Equip"))
-    //     {
-    //         slotBack.color = Color.white;
-    //     }
-    // }
+    public bool isCanExtend(string itemId)
+    {
+        return (placingItemId == "" || itemId == placingItemId);
+    }
 }
