@@ -11,6 +11,8 @@ public class UISlot : MonoBehaviour
 
     public Vector2 positionForGrid;
     public bool isInitEnable;
+
+    public string placingItemId = "";
     
     // Start is called before the first frame update
     void Start()
@@ -35,6 +37,11 @@ public class UISlot : MonoBehaviour
         {
             slotBack.color = Color.grey;
         }
+    }
+
+    public bool isCanPlace()
+    {
+        return isInitEnable;
     }
 
     public void flagPlacing(bool flag)
