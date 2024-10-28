@@ -39,9 +39,9 @@ public class UISlot : MonoBehaviour
         }
     }
 
-    public bool isCanPlace()
+    public bool isCanPlace(string willPlaceId)
     {
-        return isInitEnable;
+        return isInitEnable && (placingItemId == "" || willPlaceId == placingItemId);
     }
 
     public void flagPlacing(bool flag)

@@ -24,13 +24,9 @@ namespace PackageMerge
         public List<Vector2> patternPlaces;
 
         private bool _isDragging;
+        private Vector3 _originalPosition;
         private List<UISlot> _lastValidSlots;
         private UISlot _lastMarkCell;
-        
-		void Start()
-		{
-            
-        }
 
         private EquipGridPlace FindEquipGridPlaceMinXMaxY()
         {
@@ -56,6 +52,8 @@ namespace PackageMerge
                 {
                     renderer.sortingOrder = 10;
                 }
+
+                _originalPosition = IconImage.LocalPosition();
                 DragingItem(Input.mousePosition);
             }
         }
@@ -90,12 +88,11 @@ namespace PackageMerge
                         markCell = cell;
                     }
                     cell.flagPlacing(false);
-                    cell.placingItemId = null;
                 }
                 ("目前距离最近的是 " + minMagn).LogInfo();
                 List<UISlot> validSlots = new List<UISlot>();
                 
-                if (markCell != null && markCell.isCanPlace() && minMagn < 60)
+                if (markCell != null && markCell.isCanPlace(BindItem.ItemId) && minMagn < 60)
                 {
                     markCell.flagPlacing(true);
                     validSlots.Add(markCell);
@@ -131,7 +128,7 @@ namespace PackageMerge
             foreach (var cell in allSlotCells)
             {
                 if (cell.positionForGrid != pos) continue;
-                if (checkValid && !cell.isCanPlace())
+                if (checkValid && !cell.isCanPlace(BindItem.ItemId))
                 {
                     continue;
                 }
@@ -176,10 +173,11 @@ namespace PackageMerge
             else
             {
                 // 还原现场
-                IconImage.LocalIdentity();
+                IconImage.LocalPosition(_originalPosition);
                 foreach (var slot in _lastValidSlots)
                 {
                     slot.flagPlacing(false);
+                    slot.placingItemId = "";
                 }
             }
             _isDragging = false;
