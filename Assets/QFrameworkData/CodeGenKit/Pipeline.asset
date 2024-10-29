@@ -25,7 +25,7 @@ MonoBehaviour:
     MainCode: "using UnityEngine;\nusing QFramework;\n\nnamespace PackageMerge\n{\n\tpublic
       partial class GameCenterManager : ViewController\n\t{\n\t\tvoid Start()\n\t\t{\n\t\t\t//
       Code Here\n\t\t}\n\t}\n}\n"
-    DesignerCode: "// Generate Id:8abcd9de-bf17-4244-80f2-fe41286aaa51\nusing UnityEngine;\n\nnamespace
+    DesignerCode: "// Generate Id:478447cc-c26b-4d02-9dca-5d14a5924795\nusing UnityEngine;\n\nnamespace
       PackageMerge\n{\n\tpublic partial class GameCenterManager\n\t{\n\n\t\tpublic
       UnityEngine.UI.Button ExitExtendButton;\n\n\t\tpublic PackageMerge.SlotRoot
-      SlotRoot;\n\n\t}\n}\n"
+      SlotRoot;\n\n\t\tpublic UnityEngine.RectTransform DeckRoot;\n\n\t}\n}\n"

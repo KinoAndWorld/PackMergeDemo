@@ -29,7 +29,8 @@ namespace PackageMerge
         public EquipItem BindItem;
        
         public List<Vector2> patternPlaces;
-
+        public float MatchMinDistance = 100.0f;
+        
         private bool _isDragging;
         private Vector3 _originalPosition;
         private List<UISlot> _lastValidSlots;
@@ -44,11 +45,11 @@ namespace PackageMerge
             {
                 if (BindItem.Type == EquipItemType.Weapon)
                 {
-                    this.gameObject.SetActive(!newValue);
+                    // this.gameObject.SetActive(!newValue);
                 }
                 else
                 {
-                    if (newValue != false) return;
+                    if (newValue) return;
                     if (!CheckValidWhenEndDrag()) return;
                     // 结束编辑 且目前有合法的放置
                     // 消耗扩展块 修改slot状态
@@ -82,7 +83,7 @@ namespace PackageMerge
         
 		public void OnBeginDrag(PointerEventData eventData)
         {
-            if (_isDragging != false) return;
+            if (_isDragging) return;
             _isDragging = true;
             if (BindItem.Type == EquipItemType.Extend)
             {
@@ -138,7 +139,7 @@ namespace PackageMerge
             }
             var validSlots = new List<UISlot>();
             int neighborCount = 0;
-            if (markCell != null && markCell.isCanExtend(BindItem.ItemId) && minDistance < 60)
+            if (markCell != null && markCell.isCanExtend(BindItem.ItemId) && minDistance < MatchMinDistance)
             {
                 markCell.flagPlacing(true);
                 validSlots.Add(markCell);
@@ -187,7 +188,7 @@ namespace PackageMerge
             RectTransformUtility.ScreenPointToWorldPointInRectangle(gridPlace.transform as RectTransform, gridPlace.transform.position, null, out Vector3 equipPlacePt);
                 
             UISlot markCell = null;
-            var minMagn = 10000000.0f;
+            var minDistance = 10000000.0f;
             var allSlotCells = GameCenterManager.Shared.GetAllUISlots();
             foreach (var cell in allSlotCells)
             {
@@ -197,20 +198,33 @@ namespace PackageMerge
                     null,
                     out Vector3 cellWorldPt);
                 
-                var magn = (cellWorldPt - equipPlacePt).magnitude;
-                if (magn < minMagn)
+                var distance = (cellWorldPt - equipPlacePt).magnitude;
+                if (distance < minDistance)
                 {
-                    // $"cell.transform.position = [{cellWorldPt.x}, {cellWorldPt.y}], equipPlacePt = [{equipPlacePt.x}, {equipPlacePt.y}]".LogInfo();
-                    minMagn = magn;
+                    minDistance = distance;
                     markCell = cell;
                 }
                 cell.flagPlacing(false);
             }
-            ("目前距离最近的是 " + minMagn).LogInfo();
+            markCell.gameObject.GetComponent<Image>().color = Color.yellow;
+            RectTransformUtility.ScreenPointToWorldPointInRectangle(
+                markCell.transform as RectTransform,
+                markCell.transform.position,
+                null,
+                out Vector3 debugWorldPt);
+            $"目前距离最近: {minDistance}, cell.transform.position = [{debugWorldPt.x}, {debugWorldPt.y}], equipPlacePt = [{equipPlacePt.x}, {equipPlacePt.y}]".LogInfo();
+            
             List<UISlot> validSlots = new List<UISlot>();
-                
-            if (markCell != null && markCell.isCanPlace(BindItem.ItemId) && minMagn < 60)
+
+
+            if (!markCell.isCanPlace(BindItem.ItemId))
             {
+                $"markCell enable: {markCell.isInitEnable}, markCell placeId: {markCell.placingItemId}, curItemId: {BindItem.ItemId}".LogInfo();
+            }
+            
+            if (markCell != null && markCell.isCanPlace(BindItem.ItemId) && minDistance < MatchMinDistance)
+            {
+                "我来噜".LogInfo();
                 markCell.flagPlacing(true);
                 validSlots.Add(markCell);
                 // 判断是否全部合法放置
@@ -227,10 +241,15 @@ namespace PackageMerge
                 // 全部可以放置，转成绿色
                 if (validSlots.Count == patternPlaces.Count)
                 {
+                    "全部可以放置，转成绿色".LogInfo();
                     foreach (var slot in validSlots)
                     {
                         slot.slotBack.color = Color.green;
                     }
+                }
+                else
+                {
+                    $"patternPlaces({patternPlaces.Count})和validSlots({validSlots.Count})不匹配".LogInfo();
                 }
                 _lastValidSlots = validSlots;
                 _lastMarkCell = markCell;
@@ -275,9 +294,39 @@ namespace PackageMerge
         public void OnEndDrag(PointerEventData eventData)
         {
             if (!_isDragging) return;
+
+            // 落点在背包区域，就是放回背包
+            if (PointInEquipRoot(eventData.position))
+            {
+                "放回背包".LogInfo();
+                // 还原初始位置
+                IconImage.LocalIdentity();
+                if (_lastValidSlots != null) {
+                    foreach (var slot in _lastValidSlots)
+                    {
+                        slot.flagPlacing(false);
+                        slot.placingItemId = "";
+                    }
+                }
+                // 标记placingItemId
+                GameCenterManager.Shared.GetAllUISlots()
+                    .Where(e => e.placingItemId == BindItem.ItemId)
+                    .ForEach(e => e.placingItemId = "");
+                
+                // 重启布局
+                var layout = gameObject.GetComponent<LayoutElement>();
+                if (layout)
+                {
+                    layout.ignoreLayout = false;
+                }
+                
+                _isDragging = false;
+                return;
+            }
+            
+            
             // find 左上角第一个place
             var gridPlace = FindEquipGridPlaceMinXMaxY();
-
             if (CheckValidWhenEndDrag())
             {
                 // 合法放置，定点
@@ -303,10 +352,16 @@ namespace PackageMerge
                 {
                     lastValidSlot.placingItemId = BindItem.ItemId;
                 }
+
+                var layout = gameObject.GetComponent<LayoutElement>();
+                if (layout)
+                {
+                    layout.ignoreLayout = true;
+                }
             }
             else
             {
-                // 还原现场
+                // 还原初始位置
                 IconImage.LocalPosition(_originalPosition);
                 if (_lastValidSlots != null) {
                     foreach (var slot in _lastValidSlots)
@@ -315,8 +370,17 @@ namespace PackageMerge
                         slot.placingItemId = "";
                     }
                 }
+                _lastMarkCell.flagPlacing(false);
+                _lastMarkCell.placingItemId = "";
             }
             _isDragging = false;
+        }
+
+        bool PointInEquipRoot(Vector2 pos)
+        {
+            var equipRootRect = GameCenterManager.Shared.DeckRoot;
+            $"pos = {pos}, equipRootRect = {equipRootRect.ToString()}".LogInfo();
+            return RectTransformUtility.RectangleContainsScreenPoint(equipRootRect, pos, null);
         }
 
         public void OnDrag(PointerEventData eventData)

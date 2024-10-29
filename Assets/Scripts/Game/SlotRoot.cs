@@ -64,12 +64,9 @@ namespace PackageMerge
 		{
 			GameCenterManager.Shared.ExtendMode.Register(value =>
 			{
-				foreach (var currentSlot in _currentSlots)
+				foreach (var currentSlot in _currentSlots.Where(currentSlot => !currentSlot.isInitEnable))
 				{
-					if (!currentSlot.isInitEnable)
-					{
-						currentSlot.slotBack.enabled = value;
-					}
+					currentSlot.slotBack.enabled = value;
 				}
 			}).UnRegisterWhenGameObjectDestroyed(gameObject);
 		}

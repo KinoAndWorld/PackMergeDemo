@@ -1,4 +1,4 @@
-// Generate Id:8abcd9de-bf17-4244-80f2-fe41286aaa51
+// Generate Id:478447cc-c26b-4d02-9dca-5d14a5924795
 using UnityEngine;
 
 namespace PackageMerge
@@ -9,6 +9,8 @@ namespace PackageMerge
 		public UnityEngine.UI.Button ExitExtendButton;
 
 		public PackageMerge.SlotRoot SlotRoot;
+
+		public UnityEngine.RectTransform DeckRoot;
 
 	}
 }

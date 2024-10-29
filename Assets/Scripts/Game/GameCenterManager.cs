@@ -30,7 +30,7 @@ namespace PackageMerge
 		[RuntimeInitializeOnLoadMethod]
 		static void CommonInit()
 		{
-			
+			Application.targetFrameRate = 60;
 		}
 
 		public UISlot[] GetAllUISlots()
