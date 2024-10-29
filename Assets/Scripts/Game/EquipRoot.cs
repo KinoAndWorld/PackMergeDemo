@@ -34,6 +34,7 @@ namespace PackageMerge
         private Vector3 _originalPosition;
         private List<UISlot> _lastValidSlots;
         private UISlot _lastMarkCell;
+        private int _lastNeighborCount;
 
 
         private void Start()
@@ -44,6 +45,23 @@ namespace PackageMerge
                 if (BindItem.Type == EquipItemType.Weapon)
                 {
                     this.gameObject.SetActive(!newValue);
+                }
+                else
+                {
+                    if (newValue != false) return;
+                    if (!CheckValidWhenEndDrag()) return;
+                    // 结束编辑 且目前有合法的放置
+                    // 消耗扩展块 修改slot状态
+                    _lastValidSlots.ForEach(e =>
+                    {
+                        e.placingItemId = "";
+                        e.isInitEnable = true;
+                        e.ResetBackColor();
+                    });
+                    _lastValidSlots = new List<UISlot>();
+                    _lastMarkCell = null;
+                    _lastNeighborCount = 0;
+                    Destroy(gameObject);
                 }
             }).UnRegisterWhenGameObjectDestroyed(gameObject);
         }
@@ -66,12 +84,6 @@ namespace PackageMerge
         {
             if (_isDragging != false) return;
             _isDragging = true;
-
-            // var renderer = IconImage.transform.parent.gameObject.GetComponent<SpriteRenderer>();
-            // if (renderer)
-            // {
-            //     renderer.sortingOrder = 10;
-            // }
             if (BindItem.Type == EquipItemType.Extend)
             {
                 // 开启扩展模式
@@ -109,40 +121,46 @@ namespace PackageMerge
             RectTransformUtility.ScreenPointToWorldPointInRectangle(gridPlace.transform as RectTransform, gridPlace.transform.position, null, out Vector3 equipPlacePt);
             
             UISlot markCell = null;
-            var minMagn = 10000000.0f;
+            var minDistance = 10000000.0f;
             var allSlotCells = GameCenterManager.Shared.GetAllUnableUISlots();
             foreach (var cell in allSlotCells)
             {
                 RectTransformUtility.ScreenPointToWorldPointInRectangle(cell.transform as RectTransform, cell.transform.position, null, out Vector3 cellWorldPt);
                 
-                var magn = (cellWorldPt - equipPlacePt).magnitude;
-                if (magn < minMagn)
+                var distance = (cellWorldPt - equipPlacePt).magnitude;
+                if (distance < minDistance)
                 {
                     // $"cell.transform.position = [{cellWorldPt.x}, {cellWorldPt.y}], equipPlacePt = [{equipPlacePt.x}, {equipPlacePt.y}]".LogInfo();
-                    minMagn = magn;
+                    minDistance = distance;
                     markCell = cell;
                 }
                 cell.flagPlacing(false);
             }
-            // ("目前距离最近的是 " + minMagn).LogInfo();
             var validSlots = new List<UISlot>();
-            if (markCell != null && markCell.isCanExtend(BindItem.ItemId) && minMagn < 60)
+            int neighborCount = 0;
+            if (markCell != null && markCell.isCanExtend(BindItem.ItemId) && minDistance < 60)
             {
                 markCell.flagPlacing(true);
                 validSlots.Add(markCell);
-                // 判断是否全部合法放置
-                
-                // try full pattern
+                if (GameCenterManager.Shared.ExtendSlotIsNeighbor(markCell))
+                {
+                    neighborCount++;
+                }
+                // 判断是否全部合法放置 try full pattern
                 foreach (var patternPlace in patternPlaces)
                 {
                     var cell = GetExtendSlotByPosition(markCell.positionForGrid + patternPlace);
                     if (!cell || validSlots.Contains(cell)) continue;
                     cell.flagPlacing(true);
                     validSlots.Add(cell);
+                    if (GameCenterManager.Shared.ExtendSlotIsNeighbor(cell))
+                    {
+                        neighborCount++;
+                    }
                 }
 
                 // 全部可以放置，转成绿色
-                if (validSlots.Count == patternPlaces.Count)
+                if (validSlots.Count == patternPlaces.Count && neighborCount > 0)
                 {
                     foreach (var slot in validSlots)
                     {
@@ -151,6 +169,7 @@ namespace PackageMerge
                 }
                 _lastValidSlots = validSlots;
                 _lastMarkCell = markCell;
+                _lastNeighborCount = neighborCount;
             }
         }
 
@@ -172,7 +191,11 @@ namespace PackageMerge
             var allSlotCells = GameCenterManager.Shared.GetAllUISlots();
             foreach (var cell in allSlotCells)
             {
-                RectTransformUtility.ScreenPointToWorldPointInRectangle(cell.transform as RectTransform, cell.transform.position, null, out Vector3 cellWorldPt);
+                RectTransformUtility.ScreenPointToWorldPointInRectangle(
+                    cell.transform as RectTransform,
+                    cell.transform.position,
+                    null,
+                    out Vector3 cellWorldPt);
                 
                 var magn = (cellWorldPt - equipPlacePt).magnitude;
                 if (magn < minMagn)
@@ -236,13 +259,26 @@ namespace PackageMerge
             return allSlotCells.FirstOrDefault(cell => cell.positionForGrid == pos);
         }
 
+        private bool CheckValidWhenEndDrag()
+        {
+            if (BindItem.Type == EquipItemType.Extend)
+            {
+                return _lastValidSlots != null && _lastValidSlots.Count == patternPlaces.Count &&
+                       _lastNeighborCount > 0;
+            }
+            else
+            {
+                return _lastValidSlots != null && _lastValidSlots.Count == patternPlaces.Count;
+            }
+        }
+
         public void OnEndDrag(PointerEventData eventData)
         {
             if (!_isDragging) return;
             // find 左上角第一个place
             var gridPlace = FindEquipGridPlaceMinXMaxY();
 
-            if (_lastValidSlots != null && _lastValidSlots.Count == patternPlaces.Count)
+            if (CheckValidWhenEndDrag())
             {
                 // 合法放置，定点
                 RectTransformUtility.ScreenPointToWorldPointInRectangle(

@@ -28,6 +28,11 @@ public class UISlot : MonoBehaviour
 
     public void commonInit()
     {
+        ResetBackColor();
+    }
+
+    public void ResetBackColor()
+    {
         if (isInitEnable)
         {
             ColorUtility.TryParseHtmlString("#E5CDB1", out var newCol);

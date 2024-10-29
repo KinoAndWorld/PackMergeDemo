@@ -43,5 +43,27 @@ namespace PackageMerge
 			return SlotRoot.transform.GetComponentsInChildren<UISlot>()
 				.Where(e => e.isInitEnable == false).ToArray();
 		}
+
+		public bool ExtendSlotIsNeighbor(UISlot slot)
+		{
+			var fourDirections = new []
+			{
+				new Vector2(-1, 0), // 上
+				new Vector2(1, 0), // 下
+				new Vector2(0, -1), // 左
+				new Vector2(0, 1) // 右
+			};
+			foreach (var direction in fourDirections)
+			{
+				var detectPos = slot.positionForGrid + direction;
+				var tryFindSlot = SlotRoot.GetSlotByPosition(detectPos, SlotSearchType.Enable);
+				if (tryFindSlot)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
 	}
 }

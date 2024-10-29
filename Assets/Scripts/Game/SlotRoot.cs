@@ -1,11 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using QFramework;
 using UnityEngine.UI;
 
 namespace PackageMerge
 {
+
+	public enum SlotSearchType
+	{
+		All,
+		Enable,
+		Disable
+	}
+	
 	public partial class SlotRoot : ViewController
 	{
 		public int initColunm = 5;
@@ -37,6 +46,18 @@ namespace PackageMerge
 					}).Show();
 				}
 			}
+		}
+
+		public UISlot GetSlotByPosition(Vector2 pos, SlotSearchType searchType)
+		{
+			var searchList = searchType switch
+			{
+				SlotSearchType.Enable => _currentSlots.FindAll(slot => slot.isInitEnable),
+				SlotSearchType.Disable => _currentSlots.FindAll(slot => !slot.isInitEnable),
+				_ => _currentSlots
+			};
+
+			return searchList.FirstOrDefault(e => e.positionForGrid == pos);
 		}
 
 		private void ListenEvents()
