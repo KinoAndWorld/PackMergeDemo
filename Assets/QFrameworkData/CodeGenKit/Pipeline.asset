@@ -18,14 +18,16 @@ MonoBehaviour:
     GameObject: {fileID: 0}
     From: 0
     NameToFullName: []
-    BindInfos: []
+    BindInfos:
+    - TypeName: UnityEngine.UI.Image
+      PathToRoot: SlotCell
+      MemberName: SlotCell
     ScriptsFolder: Assets/Scripts/Game
-    ClassName: GameCenterManager
+    ClassName: SlotRoot
     Namespace: PackageMerge
     MainCode: "using UnityEngine;\nusing QFramework;\n\nnamespace PackageMerge\n{\n\tpublic
-      partial class GameCenterManager : ViewController\n\t{\n\t\tvoid Start()\n\t\t{\n\t\t\t//
+      partial class SlotRoot : ViewController\n\t{\n\t\tvoid Start()\n\t\t{\n\t\t\t//
       Code Here\n\t\t}\n\t}\n}\n"
-    DesignerCode: "// Generate Id:478447cc-c26b-4d02-9dca-5d14a5924795\nusing UnityEngine;\n\nnamespace
-      PackageMerge\n{\n\tpublic partial class GameCenterManager\n\t{\n\n\t\tpublic
-      UnityEngine.UI.Button ExitExtendButton;\n\n\t\tpublic PackageMerge.SlotRoot
-      SlotRoot;\n\n\t\tpublic UnityEngine.RectTransform DeckRoot;\n\n\t}\n}\n"
+    DesignerCode: "// Generate Id:4a18f3d5-2bd2-4fe0-b233-1f4742dd91a5\nusing UnityEngine;\n\nnamespace
+      PackageMerge\n{\n\tpublic partial class SlotRoot\n\t{\n\n\t\tpublic UnityEngine.UI.Image
+      SlotCell;\n\n\t}\n}\n"

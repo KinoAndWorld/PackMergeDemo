@@ -3,16 +3,34 @@ using System.Collections;
 using System.Collections.Generic;
 using QFramework;
 using UnityEngine;
+using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 
 public class UISlot : MonoBehaviour
 {
     public Image slotBack;
-
+    public Text placeLabel;
+    
     public Vector2 positionForGrid;
     public bool isInitEnable;
 
-    public string placingItemId = "";
+    // 格式要做成name_xxx的形式，前面标记类型，后面加个唯一标识符
+    private string placingItemId = "";
+
+    public string PlacingItemId
+    {
+        get => placingItemId;
+        set
+        {
+            placingItemId = value;
+            placeLabel.text = placingItemId;
+        }
+    }
+
+    // public bool ComparePlaceItem(string placeItemId)
+    // {
+    //     
+    // }
     
     // Start is called before the first frame update
     void Start()

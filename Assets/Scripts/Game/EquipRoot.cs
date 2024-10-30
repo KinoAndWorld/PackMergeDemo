@@ -21,6 +21,7 @@ namespace PackageMerge
         public string Name;
         public string ItemId;
         public EquipItemType Type;
+        public int Level = 1;
     }
     
 	public partial class EquipRoot : ViewController, IBeginDragHandler, IEndDragHandler, IDragHandler
@@ -55,7 +56,7 @@ namespace PackageMerge
                     // 消耗扩展块 修改slot状态
                     _lastValidSlots.ForEach(e =>
                     {
-                        e.placingItemId = "";
+                        e.PlacingItemId = "";
                         e.isInitEnable = true;
                         e.ResetBackColor();
                     });
@@ -219,7 +220,7 @@ namespace PackageMerge
 
             if (!markCell.isCanPlace(BindItem.ItemId))
             {
-                $"markCell enable: {markCell.isInitEnable}, markCell placeId: {markCell.placingItemId}, curItemId: {BindItem.ItemId}".LogInfo();
+                $"markCell enable: {markCell.isInitEnable}, markCell placeId: {markCell.PlacingItemId}, curItemId: {BindItem.ItemId}".LogInfo();
             }
             
             if (markCell != null && markCell.isCanPlace(BindItem.ItemId) && minDistance < MatchMinDistance)
@@ -305,13 +306,13 @@ namespace PackageMerge
                     foreach (var slot in _lastValidSlots)
                     {
                         slot.flagPlacing(false);
-                        slot.placingItemId = "";
+                        slot.PlacingItemId = "";
                     }
                 }
-                // 标记placingItemId
+                // 标记PlacingItemId
                 GameCenterManager.Shared.GetAllUISlots()
-                    .Where(e => e.placingItemId == BindItem.ItemId)
-                    .ForEach(e => e.placingItemId = "");
+                    .Where(e => e.PlacingItemId == BindItem.ItemId)
+                    .ForEach(e => e.PlacingItemId = "");
                 
                 // 重启布局
                 var layout = gameObject.GetComponent<LayoutElement>();
@@ -348,9 +349,19 @@ namespace PackageMerge
                 IconImage.LocalPosition(fixLocalPos);
 
                 // 保存格子放置的武器item
-                foreach (var lastValidSlot in _lastValidSlots)
+                foreach (var slot in GameCenterManager.Shared.GetAllUISlots())
                 {
-                    lastValidSlot.placingItemId = BindItem.ItemId;
+                    if (_lastValidSlots.Contains(slot))
+                    {
+                        slot.PlacingItemId = BindItem.ItemId;
+                    }
+                    else
+                    {
+                        if (slot.PlacingItemId == BindItem.ItemId)
+                        {
+                            slot.PlacingItemId = "";
+                        }
+                    }
                 }
 
                 var layout = gameObject.GetComponent<LayoutElement>();
@@ -367,11 +378,11 @@ namespace PackageMerge
                     foreach (var slot in _lastValidSlots)
                     {
                         slot.flagPlacing(false);
-                        slot.placingItemId = "";
+                        slot.PlacingItemId = "";
                     }
                 }
                 _lastMarkCell.flagPlacing(false);
-                _lastMarkCell.placingItemId = "";
+                _lastMarkCell.PlacingItemId = "";
             }
             _isDragging = false;
         }
